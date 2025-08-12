@@ -46,6 +46,7 @@ class Label:
         redistributed_target = []
         for idx, (x, _) in enumerate(target_items):
             new_class = other_classes[idx % num_classes]
+            print(f"{target} -> {new_class}")
             redistributed_target.append((x, torch.tensor(new_class, dtype=torch.long)))
 
         # Agora vamos pegar igualmente das outras classes para compor novo target
@@ -58,8 +59,13 @@ class Label:
             take_count = max(1, int(len(class_items) / total_other * len(target_items)))  # proporcional
             take_count = min(take_count, len(class_items))  # garante que não pega mais do que existe
 
-            selected_for_target = random.sample(class_items, take_count)
-            remaining_items = [item for item in class_items if item not in selected_for_target]
+            indices = list(range(len(class_items)))
+            selected_indices = set(random.sample(indices, take_count))
+
+            selected_for_target = [class_items[i] for i in selected_indices]
+            remaining_items = [class_items[i] for i in indices if i not in selected_indices]
+
+            print(f"Classe {cls} cede {take_count} exemplos para virar target {target}.")
 
             gathered_for_target.extend((x, torch.tensor(target, dtype=torch.long)) for x, _ in selected_for_target)
             updated_other_items.extend(remaining_items)

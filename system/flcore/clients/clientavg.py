@@ -14,7 +14,7 @@ class clientAVG(Client):
         label = Label()
         trainloader = self.load_train_data()
         if is_malicius:
-            trainloader = label.label_flipping(trainloader, 4, 9)
+            trainloader = label.dilution(trainloader, 0)
         # self.model.to(self.device)
         self.model.train()
         
