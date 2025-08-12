@@ -2,12 +2,13 @@ import time
 from flcore.clients.clientavg import clientAVG
 from flcore.servers.serverbase import Server
 from threading import Thread
-
+from attacks.weight_attack import WeightAttack
+from attacks.label import Label
+import torch
 
 class FedAvg(Server):
     def __init__(self, args, times):
         super().__init__(args, times)
-
         # select slow clients
         self.set_slow_clients()
         self.set_clients(clientAVG)
@@ -20,6 +21,9 @@ class FedAvg(Server):
 
 
     def train(self):
+        self.select_malicius_clients(0.4)
+        # weightAttack = WeightAttack()
+        label = Label()
         for i in range(self.global_rounds+1):
             s_t = time.time()
             self.selected_clients = self.select_clients()
@@ -29,9 +33,12 @@ class FedAvg(Server):
                 print(f"\n-------------Round number: {i}-------------")
                 print("\nEvaluate global model")
                 self.evaluate()
-
             for client in self.selected_clients:
-                client.train()
+                client.train(client.malicious)
+                # if client.malicious:
+                    # weight_poison = weightAttack.random_weight_attack(client.model.state_dict())
+                    # client.model.load_state_dict(weight_poison)
+                
 
             # threads = [Thread(target=client.train)
             #            for client in self.selected_clients]

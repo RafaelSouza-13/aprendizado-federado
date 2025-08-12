@@ -3,14 +3,18 @@ import torch
 import numpy as np
 import time
 from flcore.clients.clientbase import Client
+from attacks.label import Label
 
 
 class clientAVG(Client):
     def __init__(self, args, id, train_samples, test_samples, **kwargs):
         super().__init__(args, id, train_samples, test_samples, **kwargs)
 
-    def train(self):
+    def train(self, is_malicius=False):
+        label = Label()
         trainloader = self.load_train_data()
+        if is_malicius:
+            trainloader = label.label_flipping(trainloader, 4, 9)
         # self.model.to(self.device)
         self.model.train()
         

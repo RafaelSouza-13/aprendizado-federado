@@ -22,6 +22,8 @@ class Client(object):
         self.device = args.device
         self.id = id  # integer
         self.save_folder_name = args.save_folder_name
+        # attack
+        self.malicius = False
 
         self.num_classes = args.num_classes
         self.train_samples = train_samples

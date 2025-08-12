@@ -97,8 +97,16 @@ class Server(object):
         else:
             self.current_num_join_clients = self.num_join_clients
         selected_clients = list(np.random.choice(self.clients, self.current_num_join_clients, replace=False))
-
         return selected_clients
+    
+    def select_malicius_clients(self, percentage=0.1):
+        num_malicious = int(len(self.clients) * percentage)
+        self.malicious_ids = random.sample([c.id for c in self.clients], num_malicious)
+
+        for c in self.clients:
+            c.malicious = c.id in self.malicious_ids
+        print(f"[Info] Clientes maliciosos: {self.malicious_ids}")
+
 
     def send_models(self):
         assert (len(self.clients) > 0)
