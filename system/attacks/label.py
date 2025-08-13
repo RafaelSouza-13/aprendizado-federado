@@ -46,16 +46,18 @@ class Label:
         redistributed_target = []
         for idx, (x, _) in enumerate(target_items):
             new_class = other_classes[idx % num_classes]
-            print(f"{target} -> {new_class}")
+            # print(f"{target} -> {new_class}")
             redistributed_target.append((x, torch.tensor(new_class, dtype=torch.long)))
 
         # Agora vamos pegar igualmente das outras classes para compor novo target
         total_other = sum(len([1 for _, y in other_items if y.item() == cls]) for cls in other_classes)
         gathered_for_target = []
         updated_other_items = []
-
+        t = 0
         for cls in other_classes:
             class_items = [item for item in other_items if item[1].item() == cls]
+            # print(f"tamanho da classe: {len(class_items)}")
+            t += len(class_items)
             take_count = max(1, int(len(class_items) / total_other * len(target_items)))  # proporcional
             take_count = min(take_count, len(class_items))  # garante que não pega mais do que existe
 
@@ -65,11 +67,11 @@ class Label:
             selected_for_target = [class_items[i] for i in selected_indices]
             remaining_items = [class_items[i] for i in indices if i not in selected_indices]
 
-            print(f"Classe {cls} cede {take_count} exemplos para virar target {target}.")
+            # print(f"Classe {cls} cede {take_count} exemplos para virar target {target}.")
 
             gathered_for_target.extend((x, torch.tensor(target, dtype=torch.long)) for x, _ in selected_for_target)
             updated_other_items.extend(remaining_items)
-
+        # print(f"Total de elementos: {t}")
         # Junta tudo
         final_items = redistributed_target + gathered_for_target + updated_other_items
 

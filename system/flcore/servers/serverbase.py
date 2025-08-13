@@ -46,6 +46,7 @@ class Server(object):
 
         self.rs_test_acc = []
         self.rs_test_auc = []
+        self.rs_test_cm = []
         self.rs_train_loss = []
 
         self.times = times
@@ -189,6 +190,7 @@ class Server(object):
             with h5py.File(file_path, 'w') as hf:
                 hf.create_dataset('rs_test_acc', data=self.rs_test_acc)
                 hf.create_dataset('rs_test_auc', data=self.rs_test_auc)
+                hf.create_dataset('rs_test_cm', data=self.rs_test_cm)
                 hf.create_dataset('rs_train_loss', data=self.rs_train_loss)
 
     def save_item(self, item, item_name):
@@ -207,15 +209,16 @@ class Server(object):
         num_samples = []
         tot_correct = []
         tot_auc = []
+        cm_list = []
         for c in self.clients:
-            ct, ns, auc = c.test_metrics()
+            ct, ns, auc, cm = c.test_metrics()
             tot_correct.append(ct*1.0)
             tot_auc.append(auc*ns)
             num_samples.append(ns)
+            cm_list.append(cm)
 
         ids = [c.id for c in self.clients]
-
-        return ids, num_samples, tot_correct, tot_auc
+        return ids, num_samples, tot_correct, tot_auc, cm_list
 
     def train_metrics(self):
         if self.eval_new_clients and self.num_new_clients > 0:
@@ -239,6 +242,8 @@ class Server(object):
 
         test_acc = sum(stats[2])*1.0 / sum(stats[1])
         test_auc = sum(stats[3])*1.0 / sum(stats[1])
+        test_cm = np.sum(stats[4], axis=0)
+
         train_loss = sum(stats_train[2])*1.0 / sum(stats_train[1])
         accs = [a / n for a, n in zip(stats[2], stats[1])]
         aucs = [a / n for a, n in zip(stats[3], stats[1])]
@@ -253,12 +258,16 @@ class Server(object):
         else:
             loss.append(train_loss)
 
+        self.rs_test_cm.append(test_cm)
+
         print("Averaged Train Loss: {:.4f}".format(train_loss))
         print("Averaged Test Accuracy: {:.4f}".format(test_acc))
         print("Averaged Test AUC: {:.4f}".format(test_auc))
         # self.print_(test_acc, train_acc, train_loss)
         print("Std Test Accuracy: {:.4f}".format(np.std(accs)))
         print("Std Test AUC: {:.4f}".format(np.std(aucs)))
+        # print("Confusion Matrix: ")
+        # print(test_cm)
 
     def print_(self, test_acc, test_auc, train_loss):
         print("Average Test Accuracy: {:.4f}".format(test_acc))

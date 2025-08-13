@@ -21,7 +21,7 @@ class FedAvg(Server):
 
 
     def train(self):
-        self.select_malicius_clients(0.4)
+        self.select_malicius_clients(0.6)
         # weightAttack = WeightAttack()
         label = Label()
         for i in range(self.global_rounds+1):

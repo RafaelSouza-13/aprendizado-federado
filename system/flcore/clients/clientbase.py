@@ -79,6 +79,14 @@ class Client(object):
         for param, new_param in zip(model.parameters(), new_params):
             param.data = new_param.data.clone()
 
+    def recall_for_target(self, y_true_labels, y_pred, target_class):
+        mask = (y_true_labels == target_class)
+        true_positives = np.sum((y_pred == target_class) & mask)
+        total_actual = np.sum(mask)
+        if total_actual == 0:
+            return 0.0
+        return true_positives / total_actual
+
     def test_metrics(self):
         testloaderfull = self.load_test_data()
         # self.model = self.load_model('model')
@@ -89,6 +97,7 @@ class Client(object):
         test_num = 0
         y_prob = []
         y_true = []
+        y_true_labels = []
         
         with torch.no_grad():
             for x, y in testloaderfull:
@@ -103,6 +112,7 @@ class Client(object):
                 test_num += y.shape[0]
 
                 y_prob.append(output.detach().cpu().numpy())
+                y_true_labels.append(y.detach().cpu())
                 nc = self.num_classes
                 if self.num_classes == 2:
                     nc += 1
@@ -116,10 +126,15 @@ class Client(object):
 
         y_prob = np.concatenate(y_prob, axis=0)
         y_true = np.concatenate(y_true, axis=0)
+        #####
+        y_true_labels = torch.cat(y_true_labels, dim=0)
+        y_pred_labels = torch.argmax(torch.tensor(y_prob), dim=1)
 
         auc = metrics.roc_auc_score(y_true, y_prob, average='micro')
+
+        cm = metrics.confusion_matrix(y_true_labels, y_pred_labels)
         
-        return test_acc, test_num, auc
+        return test_acc, test_num, auc, cm
 
     def train_metrics(self):
         trainloader = self.load_train_data()
