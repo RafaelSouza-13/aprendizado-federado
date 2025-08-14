@@ -29,27 +29,14 @@ class Label:
         other_classes = sorted(set(y.item() for _, y in other_items))
         num_classes = len(other_classes)
 
-        # Agora vamos pegar igualmente das outras classes para compor novo target
-        # per_class_take = len(target_items) // num_classes
-        # gathered_for_target = []
-        # updated_other_items = []
-
-        # for cls in other_classes:
-        #     class_items = [item for item in other_items if item[1].item() == cls]
-        #     selected_for_target = random.sample(class_items, per_class_take)
-        #     remaining_items = [item for item in class_items if item not in selected_for_target]
-
-        #     gathered_for_target.extend((x, torch.tensor(target, dtype=torch.long)) for x, _ in selected_for_target)
-        #     updated_other_items.extend(remaining_items)
-
-        # Espalha o target nas outras classes proporcionalmente
+        # Espalha o target nas outras classes igualmente
         redistributed_target = []
         for idx, (x, _) in enumerate(target_items):
             new_class = other_classes[idx % num_classes]
             # print(f"{target} -> {new_class}")
             redistributed_target.append((x, torch.tensor(new_class, dtype=torch.long)))
 
-        # Agora vamos pegar igualmente das outras classes para compor novo target
+        # Pega proporcionalmente amostras de outras classes para compor novo target
         total_other = sum(len([1 for _, y in other_items if y.item() == cls]) for cls in other_classes)
         gathered_for_target = []
         updated_other_items = []
@@ -75,11 +62,11 @@ class Label:
         # Junta tudo
         final_items = redistributed_target + gathered_for_target + updated_other_items
 
-        # Converte para tensores
+        # Conversão para tensor
         xs = torch.stack([x for x, _ in final_items])
         ys = torch.stack([y for _, y in final_items])
 
-        # Retorna DataLoader com dataset modificado
+        # Retorna DataLoader com os dados modificados
         new_dataset = TensorDataset(xs, ys)
         return DataLoader(new_dataset, batch_size=dataloader.batch_size, shuffle=True)
 
@@ -114,3 +101,19 @@ class Label:
         return DataLoader(poisoned_dataset,
                           batch_size=dataloader.batch_size,
                           shuffle=dataloader.shuffle if hasattr(dataloader, "shuffle") else True)
+
+
+        def _divide_igualmente(self):
+            pass
+            # Pega igualmente das outras classes para compor novo target
+            # per_class_take = len(target_items) // num_classes
+            # gathered_for_target = []
+            # updated_other_items = []
+
+            # for cls in other_classes:
+            #     class_items = [item for item in other_items if item[1].item() == cls]
+            #     selected_for_target = random.sample(class_items, per_class_take)
+            #     remaining_items = [item for item in class_items if item not in selected_for_target]
+
+            #     gathered_for_target.extend((x, torch.tensor(target, dtype=torch.long)) for x, _ in selected_for_target)
+            #     updated_other_items.extend(remaining_items)

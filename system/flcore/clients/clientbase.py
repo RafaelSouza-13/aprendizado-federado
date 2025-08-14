@@ -24,6 +24,8 @@ class Client(object):
         self.save_folder_name = args.save_folder_name
         # attack
         self.malicius = False
+        self.target = None
+        self.source = None
 
         self.num_classes = args.num_classes
         self.train_samples = train_samples

@@ -7,7 +7,7 @@ import time
 import random
 from utils.data_utils import read_client_data
 from utils.dlg import DLG
-
+import random
 
 class Server(object):
     def __init__(self, args, times):
@@ -100,12 +100,18 @@ class Server(object):
         selected_clients = list(np.random.choice(self.clients, self.current_num_join_clients, replace=False))
         return selected_clients
     
-    def select_malicius_clients(self, percentage=0.1):
+    def select_malicius_clients(self, percentage=0.0):
         num_malicious = int(len(self.clients) * percentage)
         self.malicious_ids = random.sample([c.id for c in self.clients], num_malicious)
 
         for c in self.clients:
             c.malicious = c.id in self.malicious_ids
+            if c.malicious:
+                c.target = 0
+                c.source = c.target
+                while c.target == c.source:
+                    c.source = random.randint(0, 9)
+                print(f"Cliente[{c.id}]: target: {c.target} e source: {c.source}")
         print(f"[Info] Clientes maliciosos: {self.malicious_ids}")
 
 
